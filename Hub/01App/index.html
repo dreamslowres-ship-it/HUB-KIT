@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notas & Checklist</title>
+<style>
+  body{margin:0;background:#0e121a;color:#eef0f4;font-family:system-ui,-apple-system,sans-serif;padding:20px;max-width:680px;margin:auto;}
+  h1{font-size:18px;margin:0 0 12px;color:#ff7a2e;}
+  textarea{width:100%;height:55vh;background:#161b26;color:#eef0f4;border:1px solid #2a3244;border-radius:8px;padding:12px;font-size:14px;box-sizing:border-box;resize:vertical;}
+  .meta{font-size:12px;color:#8e98ad;margin-top:8px;display:flex;justify-content:space-between;}
+</style>
+</head>
+<body>
+  <h1>Notas & Checklist (01App)</h1>
+  <textarea id="pad" placeholder="Escribe tus notas aquí… Se guardan automáticamente en este navegador."></textarea>
+  <div class="meta"><span id="status">Guardado</span><span id="chars">0 caracteres</span></div>
+  <script>
+    const pad = document.getElementById('pad');
+    const KEY = 'apphub_01app_notes';
+    pad.value = localStorage.getItem(KEY) || '';
+    const update = () => { document.getElementById('chars').textContent = pad.value.length + ' caracteres'; };
+    update();
+    pad.addEventListener('input', () => {
+      localStorage.setItem(KEY, pad.value);
+      document.getElementById('status').textContent = 'Guardado ' + new Date().toLocaleTimeString();
+      update();
+    });
+  </script>
+</body>
+</html>
