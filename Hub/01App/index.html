@@ -2,30 +2,521 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Notas & Checklist</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tabla Pitagórica</title>
 <style>
-  body{margin:0;background:#0e121a;color:#eef0f4;font-family:system-ui,-apple-system,sans-serif;padding:20px;max-width:680px;margin:auto;}
-  h1{font-size:18px;margin:0 0 12px;color:#ff7a2e;}
-  textarea{width:100%;height:55vh;background:#161b26;color:#eef0f4;border:1px solid #2a3244;border-radius:8px;padding:12px;font-size:14px;box-sizing:border-box;resize:vertical;}
-  .meta{font-size:12px;color:#8e98ad;margin-top:8px;display:flex;justify-content:space-between;}
+  :root {
+    --wood-light: #edd7b4;
+    --wood-dark: #dfb982;
+    --board-border: #2c353d;
+    --grid-line: #3b444b;
+    --ribbon-red: #b8383d;
+    --ribbon-dark: #8c2327;
+    --ribbon-highlight: #d1494e;
+    --text-dark: #1f2428;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 8px 20px;
+    background-color: var(--wood-light);
+    background-image: 
+      repeating-linear-gradient(90deg, rgba(185,140,85,0.06) 0px, rgba(185,140,85,0.06) 2px, transparent 2px, transparent 9px),
+      radial-gradient(circle at 50% 40%, #f5e5c8 0%, #dfc092 100%);
+    overflow-x: hidden;
+  }
+
+  header {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+  }
+
+  h1 {
+    font-size: 1.55rem;
+    font-weight: 900;
+    color: #f9b21d;
+    -webkit-text-stroke: 1.5px #1a1a1a;
+    text-shadow: 0 2px 0 #1a1a1a;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-reset {
+    background: #fff8eb;
+    border: 2px solid #2c353d;
+    border-radius: 10px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #2c353d;
+    box-shadow: 0 2px 0 #2c353d;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .btn-reset:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 #2c353d;
+  }
+
+  /* Contenedor principal de la tabla y las reglas */
+  .board-wrapper {
+    position: relative;
+    width: 92vw;
+    max-width: 410px;
+    aspect-ratio: 1 / 1;
+    margin: 22px auto;
+  }
+
+  .grid-board {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    grid-template-rows: repeat(11, 1fr);
+    background: #ffffff;
+    border: 2.5px solid var(--board-border);
+    box-shadow: 4px 6px 14px rgba(0, 0, 0, 0.28), 0 2px 0 #9aa3ab;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cell {
+    border-right: 1px solid var(--grid-line);
+    border-bottom: 1px solid var(--grid-line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(0.72rem, 3.3vw, 1rem);
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .cell:nth-child(11n) { border-right: none; }
+  .cell:nth-child(n+111) { border-bottom: none; }
+
+  /* Cabeceras con colores fieles a la imagen */
+  .header-corner {
+    background: #ffffff;
+    font-weight: 900;
+    font-size: clamp(0.85rem, 3.8vw, 1.15rem);
+  }
+
+  .header-cell {
+    color: #ffffff;
+    font-weight: 800;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.35);
+  }
+
+  .c1  { background-color: #d66996; }
+  .c2  { background-color: #e68680; }
+  .c3  { background-color: #f0bc7d; }
+  .c4  { background-color: #f4df6d; color: #3d3818; text-shadow: none; }
+  .c5  { background-color: #a4e07c; color: #1e3b12; text-shadow: none; }
+  .c6  { background-color: #82e3d4; color: #123d37; text-shadow: none; }
+  .c7  { background-color: #5cd0f2; }
+  .c8  { background-color: #36a9e1; }
+  .c9  { background-color: #1c85d0; }
+  .c10 { background-color: #8f84d8; }
+
+  /* Guías deslizables rojas (los 2 marcadores de cartulina) */
+  .slider-guide {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    transition: top 0.22s cubic-bezier(0.22, 1, 0.36, 1), left 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Guía Horizontal */
+  .guide-h {
+    left: -5.5%;
+    width: 111%;
+    height: calc(100% / 11);
+    top: calc((100% / 11) * 9); /* Posición inicial: 9 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .guide-h .strip {
+    width: 100%;
+    height: 23%;
+    background: linear-gradient(180deg, var(--ribbon-highlight), var(--ribbon-red) 40%, var(--ribbon-dark));
+    box-shadow: 0 2px 4px rgba(0,0,0,0.35);
+    border-top: 1px solid #6b181b;
+    border-bottom: 1px solid #6b181b;
+  }
+
+  .guide-h::before,
+  .guide-h::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 4.5%;
+    height: 100%;
+    background: var(--ribbon-red);
+    border: 1px solid #6b181b;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .guide-h::before { left: 0; border-radius: 3px 0 0 3px; }
+  .guide-h::after  { right: 0; border-radius: 0 3px 3px 0; }
+
+  /* Guía Vertical */
+  .guide-v {
+    top: -5.5%;
+    height: 111%;
+    width: calc(100% / 11);
+    left: calc((100% / 11) * 9); /* Posición inicial: 9 */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .guide-v .strip {
+    height: 100%;
+    width: 23%;
+    background: linear-gradient(90deg, var(--ribbon-highlight), var(--ribbon-red) 40%, var(--ribbon-dark));
+    box-shadow: 2px 0 4px rgba(0,0,0,0.35);
+    border-left: 1px solid #6b181b;
+    border-right: 1px solid #6b181b;
+  }
+
+  .guide-v::before,
+  .guide-v::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    height: 4.5%;
+    width: 100%;
+    background: var(--ribbon-red);
+    border: 1px solid #6b181b;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.3);
+  }
+  .guide-v::before { top: 0; border-radius: 3px 3px 0 0; }
+  .guide-v::after  { bottom: 0; border-radius: 0 0 3px 3px; }
+
+  /* Efecto de entrelazado en la intersección */
+  .cell.intersect {
+    background-color: #fff3d1;
+    font-weight: 900;
+    color: #9e1b20;
+    transform: scale(1.06);
+    z-index: 5;
+  }
+
+  /* Panel inferior táctil para móvil */
+  .controls-card {
+    width: 100%;
+    max-width: 410px;
+    background: #fffaf0;
+    border: 2.5px solid #2c353d;
+    border-radius: 16px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 0 #2c353d;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .result-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #f5ebd6;
+    border: 1.5px solid #d1bfa3;
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #2c353d;
+  }
+
+  .result-banner .badge {
+    background: var(--ribbon-red);
+    color: #fff;
+    padding: 2px 12px;
+    border-radius: 8px;
+    font-size: 1.45rem;
+  }
+
+  .sliders-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stepper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: #f8f1e3;
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid #dfd1b8;
+  }
+
+  .stepper-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #695c48;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stepper-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .step-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1.5px solid #2c353d;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #2c353d;
+  }
+
+  .step-btn:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
+
+  .step-val {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #2c353d;
+  }
 </style>
 </head>
 <body>
-  <h1>Notas & Checklist (01App)</h1>
-  <textarea id="pad" placeholder="Escribe tus notas aquí… Se guardan automáticamente en este navegador."></textarea>
-  <div class="meta"><span id="status">Guardado</span><span id="chars">0 caracteres</span></div>
-  <script>
-    const pad = document.getElementById('pad');
-    const KEY = 'apphub_01app_notes';
-    pad.value = localStorage.getItem(KEY) || '';
-    const update = () => { document.getElementById('chars').textContent = pad.value.length + ' caracteres'; };
-    update();
-    pad.addEventListener('input', () => {
-      localStorage.setItem(KEY, pad.value);
-      document.getElementById('status').textContent = 'Guardado ' + new Date().toLocaleTimeString();
-      update();
+
+  <header>
+    <h1>Tabla Pitagórica</h1>
+    <button class="btn-reset" id="btnReset" aria-label="Reiniciar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      <span>1 x 1</span>
+    </button>
+  </header>
+
+  <main class="board-wrapper" id="boardWrapper">
+    <div class="grid-board" id="gridBoard"></div>
+
+    <!-- Marcador deslizante horizontal -->
+    <div class="slider-guide guide-h" id="guideH">
+      <div class="strip"></div>
+      <div class="strip"></div>
+    </div>
+
+    <!-- Marcador deslizante vertical -->
+    <div class="slider-guide guide-v" id="guideV">
+      <div class="strip"></div>
+      <div class="strip"></div>
+    </div>
+  </main>
+
+  <section class="controls-card">
+    <div class="result-banner">
+      <span id="eqRow">9</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b8383d" stroke-width="3.2" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+      <span id="eqCol">9</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2c353d" stroke-width="3" stroke-linecap="round">
+        <line x1="5" y1="9" x2="19" y2="9"></line>
+        <line x1="5" y1="15" x2="19" y2="15"></line>
+      </svg>
+      <span class="badge" id="eqRes">81</span>
+    </div>
+
+    <div class="sliders-row">
+      <!-- Control Fila (Horizontal) -->
+      <div class="stepper">
+        <span class="stepper-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8383d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>
+          </svg>
+          Fila
+        </span>
+        <div class="stepper-controls">
+          <button class="step-btn" data-target="row" data-dir="-1" aria-label="Subir fila">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2c353d" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <span class="step-val" id="valRow">9</span>
+          <button class="step-btn" data-target="row" data-dir="1" aria-label="Bajar fila">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2c353d" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Control Columna (Vertical) -->
+      <div class="stepper">
+        <span class="stepper-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8383d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>
+          </svg>
+          Columna
+        </span>
+        <div class="stepper-controls">
+          <button class="step-btn" data-target="col" data-dir="-1" aria-label="Columna anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2c353d" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <span class="step-val" id="valCol">9</span>
+          <button class="step-btn" data-target="col" data-dir="1" aria-label="Columna siguiente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2c353d" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<script>
+  const gridBoard = document.getElementById('gridBoard');
+  const guideH = document.getElementById('guideH');
+  const guideV = document.getElementById('guideV');
+  const eqRow = document.getElementById('eqRow');
+  const eqCol = document.getElementById('eqCol');
+  const eqRes = document.getElementById('eqRes');
+  const valRow = document.getElementById('valRow');
+  const valCol = document.getElementById('valCol');
+
+  // Estado inicial idéntico al de la foto (9 x 9 = 81)
+  let currentRow = 9;
+  let currentCol = 9;
+  const cells = [];
+
+  // Generar cuadrícula 11x11 (cabeceras + 1..10)
+  for (let r = 0; r <= 10; r++) {
+    cells[r] = [];
+    for (let c = 0; c <= 10; c++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+
+      if (r === 0 && c === 0) {
+        cell.classList.add('header-corner');
+        cell.textContent = 'X';
+      } else if (r === 0) {
+        cell.classList.add('header-cell', `c${c}`);
+        cell.textContent = c;
+      } else if (c === 0) {
+        cell.classList.add('header-cell', `c${r}`);
+        cell.textContent = r;
+      } else {
+        cell.textContent = r * c;
+      }
+
+      // Tocar cualquier celda mueve ambas reglas al cruce
+      cell.addEventListener('click', () => {
+        if (r === 0 && c === 0) return;
+        if (r > 0) currentRow = r;
+        if (c > 0) currentCol = c;
+        updateGuides();
+      });
+
+      gridBoard.appendChild(cell);
+      cells[r][c] = cell;
+    }
+  }
+
+  function updateGuides() {
+    const stepPercent = 100 / 11;
+    guideH.style.top = `${currentRow * stepPercent}%`;
+    guideV.style.left = `${currentCol * stepPercent}%`;
+
+    // Limpiar intersección previa
+    document.querySelectorAll('.cell.intersect').forEach(el => el.classList.remove('intersect'));
+    cells[currentRow][currentCol].classList.add('intersect');
+
+    // Actualizar textos
+    eqRow.textContent = currentRow;
+    eqCol.textContent = currentCol;
+    eqRes.textContent = currentRow * currentCol;
+    valRow.textContent = currentRow;
+    valCol.textContent = currentCol;
+  }
+
+  // Botones +/- para ajuste fino en móvil
+  document.querySelectorAll('.step-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      const dir = parseInt(btn.dataset.dir, 10);
+      if (target === 'row') {
+        currentRow = Math.min(10, Math.max(1, currentRow + dir));
+      } else {
+        currentCol = Math.min(10, Math.max(1, currentCol + dir));
+      }
+      updateGuides();
     });
-  </script>
+  });
+
+  // Botón reinicio rápido (1 x 1)
+  document.getElementById('btnReset').addEventListener('click', () => {
+    currentRow = 1;
+    currentCol = 1;
+    updateGuides();
+  });
+
+  // Soporte táctil para arrastrar directamente sobre el tablero
+  const boardWrapper = document.getElementById('boardWrapper');
+  let isDragging = false;
+
+  function handleTouchMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = gridBoard.getBoundingClientRect();
+    const relX = touch.clientX - rect.left;
+    const relY = touch.clientY - rect.top;
+
+    const col = Math.floor((relX / rect.width) * 11);
+    const row = Math.floor((relY / rect.height) * 11);
+
+    if (row >= 1 && row <= 10) currentRow = row;
+    if (col >= 1 && col <= 10) currentCol = col;
+    updateGuides();
+  }
+
+  boardWrapper.addEventListener('touchstart', () => { isDragging = true; }, { passive: true });
+  boardWrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
+  boardWrapper.addEventListener('touchend', () => { isDragging = false; });
+
+  // Inicializar en 9x9 como en la imagen de referencia
+  updateGuides();
+</script>
 </body>
 </html>
