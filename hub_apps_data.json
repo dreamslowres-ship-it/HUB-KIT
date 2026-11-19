@@ -6,8 +6,8 @@
   "apps": [
     {
       "id": "01App",
-      "name": "Notas & Checklist",
-      "description": "Bloc de notas rápido con guardado local automático.",
+      "name": "tabla petagorica",
+      "description": "Una tabla sensilla y visual.",
       "folder": "Hub/01App",
       "entry": "index.html",
       "icon": "assets/icono1.png",
