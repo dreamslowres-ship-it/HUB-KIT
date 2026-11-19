@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101319">
+<title>App Hub Studio</title>
+<link rel="manifest" href="./Worker/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./Worker/pwa-icon-192.png">
+<link rel="apple-touch-icon" href="./Worker/pwa-icon-192.png">
+<style>
+:root{
+  --bg:#090b0f;
+  --bg-elev:#101319;
+  --bg-elev-2:#161b24;
+  --bg-elev-3:#1e2430;
+  --line:#262d3b;
+  --line-soft:#1b202b;
+  --text:#eef0f5;
+  --text-dim:#98a2b3;
+  --text-faint:#5f697a;
+  --fire:#ff7a2e;
+  --fire-glow:rgba(255,122,46,.16);
+  --gold:#f0c24b;
+  --ok:#3dd68c;
+  --danger:#ff5c5c;
+  --radius:10px;
+  --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+button,input,select{font-family:inherit;}
+
+#hub{max-width:1080px;margin:0 auto;padding:16px 16px 48px;}
+
+/* Header */
+header.top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 16px;margin-bottom:16px;
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand img{width:38px;height:38px;border-radius:8px;}
+.brand h1{margin:0;font-size:17px;font-weight:800;letter-spacing:.01em;}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--text-faint);}
+
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ver-badge{
+  font-family:var(--mono);font-size:11px;color:var(--text-dim);
+  background:var(--bg-elev-2);border:1px solid var(--line);
+  padding:5px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;
+}
+.ver-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);}
+
+.btn{
+  background:var(--bg-elev-3);border:1px solid var(--line);color:var(--text);
+  padding:8px 12px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+}
+.btn:hover{border-color:var(--text-dim);}
+.btn.primary{background:var(--fire);border-color:var(--fire);color:#1f0d00;font-weight:700;}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#201700;font-weight:700;}
+.btn.sm{padding:6px 10px;font-size:11.5px;}
+
+/* Controls bar */
+.toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.search-wrap{flex:1;min-width:210px;position:relative;}
+.search-wrap input{
+  width:100%;background:var(--bg-elev);border:1px solid var(--line);color:var(--text);
+  border-radius:8px;padding:9px 12px;font-size:13px;outline:none;
+}
+.search-wrap input:focus{border-color:var(--fire);}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{
+  background:var(--bg-elev);border:1px solid var(--line);color:var(--text-dim);
+  padding:6px 11px;border-radius:999px;font-size:12px;cursor:pointer;font-weight:600;
+}
+.chip.active{border-color:var(--fire);color:var(--fire);background:var(--fire-glow);}
+
+/* Grid */
+.apps-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+  gap:12px;
+}
+.app-card{
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px;display:flex;flex-direction:column;gap:12px;
+  transition:transform .14s ease, border-color .14s ease;
+}
+.app-card:hover{border-color:var(--fire);transform:translateY(-2px);}
+.app-head{display:flex;align-items:center;gap:12px;}
+.app-icon{
+  width:54px;height:54px;border-radius:12px;object-fit:cover;
+  background:var(--bg-elev-2);border:1px solid var(--line-soft);flex-shrink:0;
+}
+.app-meta{min-width:0;flex:1;}
+.app-title{font-size:15px;font-weight:700;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.app-sub{
+  font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:3px;
+  display:flex;align-items:center;gap:6px;
+}
+.tag-mini{
+  font-size:10px;font-weight:700;color:var(--gold);background:rgba(240,194,75,.12);
+  border:1px solid rgba(240,194,75,.35);padding:1px 6px;border-radius:4px;
+}
+.app-desc{font-size:12.5px;color:var(--text-dim);margin:0;line-height:1.45;flex:1;}
+.app-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid var(--line-soft);}
+.app-path{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.empty{
+  border:1px dashed var(--line);border-radius:var(--radius);padding:28px;text-align:center;
+  color:var(--text-faint);font-size:13px;grid-column:1/-1;
+}
+
+/* Config / Data control modal */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:16px;z-index:50;
+}
+.modal-backdrop.open{display:flex;}
+.modal{
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius);
+  width:100%;max-width:460px;overflow:hidden;
+}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+  background:var(--bg-elev-2);border-bottom:1px solid var(--line-soft);font-weight:700;
+}
+.modal-body{padding:16px;display:flex;flex-direction:column;gap:12px;font-size:13px;}
+.kv{
+  display:flex;justify-content:space-between;gap:8px;padding:8px 10px;
+  background:var(--bg-elev-2);border:1px solid var(--line-soft);border-radius:6px;
+  font-family:var(--mono);font-size:11.5px;
+}
+.kv span:first-child{color:var(--text-dim);}
+
+.modal.wide{max-width:600px;max-height:88vh;display:flex;flex-direction:column;}
+.modal.wide .modal-body{overflow-y:auto;}
+.sec-label{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--text-dim);margin-top:6px;padding-top:10px;border-top:1px solid var(--line-soft);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.data-list{display:flex;flex-direction:column;gap:6px;}
+.data-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:var(--bg-elev-2);border:1px solid var(--line-soft);border-radius:6px;padding:8px 10px;
+}
+.data-row-info{min-width:0;flex:1;}
+.data-row-title{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.data-row-sub{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.btn.danger{background:transparent;border-color:var(--danger);color:var(--danger);}
+.btn.danger:hover{background:rgba(255,92,92,.12);}
+
+/* In-app viewer with stealth collapsible Home bar */
+.viewer{
+  position:fixed;inset:0;background:var(--bg);z-index:60;display:none;
+}
+.viewer.open{display:block;}
+.viewer iframe{width:100%;height:100%;border:none;background:#fff;display:block;}
+
+.viewer-dock{
+  position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:70;
+  display:flex;flex-direction:column;align-items:center;pointer-events:none;
+}
+.viewer-pill{
+  pointer-events:auto;
+  background:rgba(16,19,25,.68);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.14);border-top:none;
+  color:var(--text-dim);font-family:var(--mono);font-size:10.5px;font-weight:700;
+  padding:3px 14px 4px;border-radius:0 0 10px 10px;cursor:pointer;
+  opacity:.42;transition:opacity .2s ease, background .2s ease;
+  display:flex;align-items:center;gap:5px;
+}
+.viewer-pill:hover, .viewer-pill:focus-visible{opacity:1;background:rgba(16,19,25,.95);color:var(--text);}
+.viewer-dock.expanded .viewer-pill{display:none;}
+
+.viewer-bar{
+  pointer-events:auto;
+  display:none;align-items:center;gap:8px;
+  margin-top:6px;padding:6px 10px;
+  background:rgba(16,19,25,.94);backdrop-filter:blur(10px);
+  border:1px solid var(--line);border-radius:999px;
+  box-shadow:0 8px 28px rgba(0,0,0,.55);
+  max-width:94vw;
+}
+.viewer-dock.expanded .viewer-bar{display:flex;}
+.viewer-title{font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.viewer-bar .btn{border-radius:999px;padding:5px 10px;font-size:11.5px;}
+
+.toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--bg-elev-3);
+  border:1px solid var(--line);color:var(--text);padding:9px 14px;border-radius:8px;
+  font-size:12px;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="hub">
+  <header class="top">
+    <div class="brand">
+      <img src="./Worker/pwa-icon-192.png" alt="Hub">
+      <div>
+        <h1 id="hubTitle">Mi App Hub</h1>
+        <p id="hubSubtitle">Cargando configuración…</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="ver-badge" id="verBadge"><span class="dot"></span><span id="verText">v—</span></span>
+      <button class="btn gold sm" id="installPwaBtn" type="button" style="display:none;">Instalar PWA</button>
+      <button class="btn sm" id="openSettingsBtn" type="button">Control y Datos</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="search" id="searchInput" placeholder="Buscar aplicación por nombre o descripción…">
+    </div>
+    <div class="chips" id="categoryChips"></div>
+  </div>
+
+  <main class="apps-grid" id="appsGrid">
+    <div class="empty">Cargando aplicaciones desde <code>hub_apps_data.json</code>…</div>
+  </main>
+</div>
+
+<!-- Modal Control y Datos -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <span>Control de Versión, Datos y Workers</span>
+      <button class="btn sm" id="closeSettingsBtn" type="button">Cerrar</button>
+    </div>
+    <div class="modal-body">
+      <div class="kv"><span>Versión del Hub</span><b id="infoVersion">—</b></div>
+      <div class="kv"><span>Build / Caché</span><b id="infoCache">—</b></div>
+      <div class="kv"><span>Apps registradas</span><b id="infoCount">0</b></div>
+      <div class="kv">
+        <span>Modo de apertura</span>
+        <select id="launchModeSelect" style="background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 6px;">
+          <option value="internal">Dentro del Hub (visor sigiloso)</option>
+          <option value="tab">Nueva pestaña</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn primary" id="checkUpdatesBtn" type="button" style="flex:1;">Buscar nuevas apps</button>
+        <button class="btn" id="clearCacheBtn" type="button" style="flex:1;">Limpiar caché del Hub</button>
+      </div>
+
+      <div class="sec-label">
+        <span>Datos y Workers por App</span>
+        <button class="btn sm" id="refreshDataBtn" type="button">Actualizar</button>
+      </div>
+      <div class="data-list" id="perAppDataList"></div>
+
+      <div class="sec-label">
+        <span>Inspector manual (Storage / IndexedDB / Cachés / Workers)</span>
+      </div>
+      <div class="data-list" id="rawStorageList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Visor interno con barra superior sigilosa -->
+<div class="viewer" id="appViewer">
+  <div class="viewer-dock" id="viewerDock">
+    <button class="viewer-pill" id="viewerExpandBtn" type="button" title="Desplegar menú del Hub">▼ Hub</button>
+    <div class="viewer-bar">
+      <button class="btn primary sm" id="viewerBackBtn" type="button">← Home</button>
+      <span class="viewer-title" id="viewerTitle">App</span>
+      <a class="btn sm" id="viewerExternalBtn" target="_blank" rel="noopener">↗</a>
+      <button class="btn sm" id="viewerCollapseBtn" type="button" title="Plegar">▲</button>
+    </div>
+  </div>
+  <iframe id="viewerFrame" title="App"></iframe>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const PREF_KEY = 'apphub_prefs_v1';
+let hubVersion = null;
+let appsData = [];
+let activeCategory = 'Todas';
+let deferredPrompt = null;
+
+function showToast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function getLaunchMode(){
+  try { return JSON.parse(localStorage.getItem(PREF_KEY) || '{}').launchMode || 'internal'; }
+  catch(e){ return 'internal'; }
+}
+function setLaunchMode(mode){
+  try { localStorage.setItem(PREF_KEY, JSON.stringify({ launchMode: mode })); } catch(e){}
+}
+
+/* ---------- PWA Service Worker ---------- */
+async function registerPWA(){
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+          nw.postMessage({ type: 'SKIP_WAITING' });
+          showToast('Nueva versión del Hub lista.');
+        }
+      });
+    });
+  } catch (err) {
+    console.warn('SW no registrado:', err);
+  }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $('installPwaBtn').style.display = 'inline-flex';
+});
+$('installPwaBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  $('installPwaBtn').style.display = 'none';
+});
+
+/* ---------- Load Version & Apps JSON ---------- */
+async function loadHubData(manual = false){
+  try {
+    const bust = Date.now();
+    const verRes = await fetch(`./hub_version.json?t=${bust}`, { cache: 'no-store' });
+    if (verRes.ok) {
+      hubVersion = await verRes.json();
+      const prevVer = localStorage.getItem('apphub_last_ver');
+      const curVer = `${hubVersion.version}-${hubVersion.build}`;
+      if (prevVer && prevVer !== curVer) {
+        showToast(`Hub actualizado a v${hubVersion.version} (build ${hubVersion.build})`);
+      }
+      localStorage.setItem('apphub_last_ver', curVer);
+    }
+
+    const vTag = hubVersion ? `${hubVersion.version}.${hubVersion.build}` : bust;
+    const dataRes = await fetch(`./hub_apps_data.json?v=${encodeURIComponent(vTag)}&t=${bust}`, { cache: 'no-store' });
+    if (!dataRes.ok) throw new Error('No se pudo leer hub_apps_data.json');
+    const cfg = await dataRes.json();
+
+    $('hubTitle').textContent = cfg.hubTitle || 'Mi App Hub';
+    $('hubSubtitle').textContent = cfg.hubSubtitle || 'Aplicaciones HTML';
+    appsData = Array.isArray(cfg.apps) ? cfg.apps : [];
+
+    updateMetaUI();
+    renderCategories();
+    renderApps();
+    if (manual) showToast(`Sincronizado: ${appsData.length} apps cargadas.`);
+  } catch (err) {
+    console.error(err);
+    $('appsGrid').innerHTML = `<div class="empty">Error cargando configuración: ${err.message}.<br>Asegurate de abrir el Hub desde un servidor HTTP/HTTPS (ej. localhost).</div>`;
+  }
+}
+
+function updateMetaUI(){
+  const vStr = hubVersion ? `v${hubVersion.version} · b${hubVersion.build}` : 'v1.0';
+  $('verText').textContent = vStr;
+  $('infoVersion').textContent = hubVersion ? `${hubVersion.version} (${hubVersion.notes || ''})` : '—';
+  $('infoCache').textContent = hubVersion ? (hubVersion.cacheName || `build ${hubVersion.build}`) : '—';
+  $('infoCount').textContent = String(appsData.length);
+  $('launchModeSelect').value = getLaunchMode();
+}
+
+function renderCategories(){
+  const cats = ['Todas', ...new Set(appsData.map(a => a.category || 'General'))];
+  const wrap = $('categoryChips');
+  wrap.innerHTML = '';
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (cat === activeCategory ? ' active' : '');
+    btn.type = 'button';
+    btn.textContent = cat;
+    btn.onclick = () => {
+      activeCategory = cat;
+      renderCategories();
+      renderApps();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function buildAppUrl(app){
+  const folder = (app.folder || '').replace(/\/+$/, '');
+  const entry = (app.entry || 'index.html').replace(/^\/+/, '');
+  return `./${folder}/${entry}`;
+}
+
+function renderApps(){
+  const q = $('searchInput').value.trim().toLowerCase();
+  const grid = $('appsGrid');
+  const filtered = appsData.filter(app => {
+    const matchCat = activeCategory === 'Todas' || (app.category || 'General') === activeCategory;
+    const matchQ = !q || (app.name||'').toLowerCase().includes(q) || (app.description||'').toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  if (!filtered.length){
+    grid.innerHTML = '<div class="empty">No se encontraron aplicaciones con ese filtro.</div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  filtered.forEach(app => {
+    const url = buildAppUrl(app);
+    const card = document.createElement('article');
+    card.className = 'app-card';
+    card.innerHTML = `
+      <div class="app-head">
+        <img class="app-icon" src="./${app.icon || 'assets/icono1.png'}" alt="">
+        <div class="app-meta">
+          <h2 class="app-title">${app.name || app.id}</h2>
+          <div class="app-sub">
+            <span>${app.category || 'General'}</span>
+            ${app.badge ? `<span class="tag-mini">${app.badge}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <p class="app-desc">${app.description || 'Sin descripción.'}</p>
+      <div class="app-foot">
+        <span class="app-path">${app.folder || ''}</span>
+        <button class="btn primary sm" type="button">Abrir</button>
+      </div>
+    `;
+    card.querySelector('button').onclick = () => launchApp(app, url);
+    grid.appendChild(card);
+  });
+}
+
+function launchApp(app, url){
+  if (getLaunchMode() === 'tab') {
+    window.open(url, '_blank', 'noopener');
+    return;
+  }
+  $('viewerTitle').textContent = app.name || app.id;
+  $('viewerExternalBtn').href = url;
+  $('viewerDock').classList.remove('expanded');
+  $('viewerFrame').src = url;
+  $('appViewer').classList.add('open');
+}
+
+/* ---------- Per-App Data & Worker Control ---------- */
+function getMatchingLocalKeys(app){
+  const keys = [];
+  const prefix = (app.storagePrefix || '').toLowerCase();
+  const explicit = Array.isArray(app.storageKeys) ? app.storageKeys : [];
+  const idLower = (app.id || '').toLowerCase();
+  for (let i = 0; i < localStorage.length; i++){
+    const k = localStorage.key(i);
+    if (!k || k === PREF_KEY || k === 'apphub_last_ver') continue;
+    const kl = k.toLowerCase();
+    if (explicit.includes(k) || (prefix && kl.startsWith(prefix)) || (idLower && kl.includes(idLower))) {
+      keys.push(k);
+    }
+  }
+  return keys;
+}
+
+function formatBytes(bytes){
+  if (bytes < 1024) return bytes + ' B';
+  return (bytes / 1024).toFixed(1) + ' KB';
+}
+
+async function getAppResources(app){
+  const lsKeys = getMatchingLocalKeys(app);
+  let lsBytes = 0;
+  lsKeys.forEach(k => { lsBytes += (localStorage.getItem(k) || '').length * 2; });
+
+  const idLower = (app.id || '').toLowerCase();
+  const folderNorm = (app.folder || '').replace(/^\/+|\/+$/g, '').toLowerCase();
+  const cachePrefix = (app.cachePrefix || '').toLowerCase();
+  const explicitDbs = Array.isArray(app.indexedDBs) ? app.indexedDBs : [];
+
+  let swRegs = [];
+  if ('serviceWorker' in navigator){
+    const regs = await navigator.serviceWorker.getRegistrations();
+    swRegs = regs.filter(r => folderNorm && r.scope.toLowerCase().includes('/' + folderNorm));
+  }
+
+  let cacheNames = [];
+  if ('caches' in window){
+    const allCaches = await caches.keys();
+    cacheNames = allCaches.filter(c => {
+      const cl = c.toLowerCase();
+      return (cachePrefix && cl.startsWith(cachePrefix)) || (idLower && cl.includes(idLower));
+    });
+  }
+
+  let dbNames = [];
+  if ('indexedDB' in window && indexedDB.databases){
+    try{
+      const dbs = await indexedDB.databases();
+      dbNames = dbs.map(d => d.name).filter(n => n && (explicitDbs.includes(n) || (idLower && n.toLowerCase().includes(idLower))));
+    }catch(e){}
+  }
+
+  return { lsKeys, lsBytes, swRegs, cacheNames, dbNames };
+}
+
+async function clearAppData(app){
+  const res = await getAppResources(app);
+  res.lsKeys.forEach(k => localStorage.removeItem(k));
+  for (const reg of res.swRegs){ await reg.unregister(); }
+  for (const c of res.cacheNames){ await caches.delete(c); }
+  for (const db of res.dbNames){
+    await new Promise(resolve => {
+      const req = indexedDB.deleteDatabase(db);
+      req.onsuccess = req.onerror = req.onblocked = () => resolve();
+    });
+  }
+  showToast(`Datos y workers de "${app.name || app.id}" eliminados.`);
+  await renderDataControl();
+}
+
+async function renderDataControl(){
+  const perAppEl = $('perAppDataList');
+  const rawEl = $('rawStorageList');
+  perAppEl.innerHTML = '<div class="data-row"><div class="data-row-sub">Analizando…</div></div>';
+  rawEl.innerHTML = '';
+
+  const rows = [];
+  for (const app of appsData){
+    const res = await getAppResources(app);
+    const totalItems = res.lsKeys.length + res.swRegs.length + res.cacheNames.length + res.dbNames.length;
+    const summary = `${res.lsKeys.length} claves (${formatBytes(res.lsBytes)}) · ${res.dbNames.length} DB · ${res.cacheNames.length} caché · ${res.swRegs.length} SW`;
+    const row = document.createElement('div');
+    row.className = 'data-row';
+    row.innerHTML = `
+      <div class="data-row-info">
+        <div class="data-row-title">${app.name || app.id}</div>
+        <div class="data-row-sub">${summary}</div>
+      </div>
+      <button class="btn danger sm" type="button" ${totalItems === 0 ? 'disabled' : ''}>Borrar</button>
+    `;
+    row.querySelector('button').onclick = () => {
+      if (confirm(`¿Eliminar todos los datos y workers de "${app.name || app.id}"?`)) clearAppData(app);
+    };
+    rows.push(row);
+  }
+  perAppEl.innerHTML = '';
+  if (!rows.length) perAppEl.innerHTML = '<div class="data-row"><div class="data-row-sub">Sin apps registradas.</div></div>';
+  else rows.forEach(r => perAppEl.appendChild(r));
+
+  const addRawRow = (title, sub, onDel, disabled = false) => {
+    const r = document.createElement('div');
+    r.className = 'data-row';
+    r.innerHTML = `
+      <div class="data-row-info">
+        <div class="data-row-title">${title}</div>
+        <div class="data-row-sub">${sub}</div>
+      </div>
+      <button class="btn danger sm" type="button" ${disabled ? 'disabled' : ''}>Eliminar</button>
+    `;
+    r.querySelector('button').onclick = onDel;
+    rawEl.appendChild(r);
+  };
+
+  if ('serviceWorker' in navigator){
+    const regs = await navigator.serviceWorker.getRegistrations();
+    regs.forEach(reg => {
+      const isHub = reg.active && reg.active.scriptURL.endsWith('/sw.js') && new URL(reg.scope).pathname === '/';
+      addRawRow(
+        `Worker: ${new URL(reg.scope).pathname}`,
+        isHub ? 'Service Worker principal del Hub' : (reg.active ? reg.active.scriptURL : 'Registrado'),
+        async () => { await reg.unregister(); showToast('Worker desregistrado.'); renderDataControl(); },
+        isHub
+      );
+    });
+  }
+
+  if ('indexedDB' in window && indexedDB.databases){
+    try{
+      const dbs = await indexedDB.databases();
+      dbs.forEach(d => {
+        if (!d.name) return;
+        addRawRow(`IndexedDB: ${d.name}`, `Versión ${d.version || 1}`, async () => {
+          await new Promise(res => { const req = indexedDB.deleteDatabase(d.name); req.onsuccess = req.onerror = req.onblocked = res; });
+          showToast(`IndexedDB "${d.name}" eliminada.`);
+          renderDataControl();
+        });
+      });
+    }catch(e){}
+  }
+
+  if ('caches' in window){
+    const allC = await caches.keys();
+    allC.forEach(c => {
+      addRawRow(`Caché: ${c}`, 'CacheStorage', async () => {
+        await caches.delete(c);
+        showToast(`Caché "${c}" eliminada.`);
+        renderDataControl();
+      });
+    });
+  }
+
+  for (let i = 0; i < localStorage.length; i++){
+    const k = localStorage.key(i);
+    if (!k || k === PREF_KEY || k === 'apphub_last_ver') continue;
+    const size = formatBytes((localStorage.getItem(k) || '').length * 2);
+    addRawRow(`Storage: ${k}`, `localStorage · ${size}`, () => {
+      localStorage.removeItem(k);
+      showToast(`Clave "${k}" eliminada.`);
+      renderDataControl();
+    });
+  }
+
+  if (!rawEl.children.length){
+    rawEl.innerHTML = '<div class="data-row"><div class="data-row-sub">No hay datos ni workers externos almacenados.</div></div>';
+  }
+}
+
+/* ---------- Events ---------- */
+$('searchInput').addEventListener('input', renderApps);
+$('openSettingsBtn').addEventListener('click', () => {
+  $('settingsModal').classList.add('open');
+  renderDataControl();
+});
+$('refreshDataBtn').addEventListener('click', renderDataControl);
+$('closeSettingsBtn').addEventListener('click', () => $('settingsModal').classList.remove('open'));
+$('settingsModal').addEventListener('click', (e) => { if (e.target === $('settingsModal')) $('settingsModal').classList.remove('open'); });
+$('launchModeSelect').addEventListener('change', (e) => { setLaunchMode(e.target.value); showToast('Modo de apertura guardado.'); });
+
+$('checkUpdatesBtn').addEventListener('click', async () => {
+  await loadHubData(true);
+  if ('serviceWorker' in navigator) {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) reg.update();
+  }
+});
+
+$('clearCacheBtn').addEventListener('click', async () => {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHES' });
+  }
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
+  showToast('Caché limpiada. Recargando…');
+  setTimeout(() => location.reload(), 600);
+});
+
+$('viewerExpandBtn').addEventListener('click', () => $('viewerDock').classList.add('expanded'));
+$('viewerCollapseBtn').addEventListener('click', () => $('viewerDock').classList.remove('expanded'));
+$('viewerBackBtn').addEventListener('click', () => {
+  $('appViewer').classList.remove('open');
+  $('viewerDock').classList.remove('expanded');
+  $('viewerFrame').src = 'about:blank';
+});
+
+registerPWA();
+loadHubData(false);
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "version": "1.3.2",
+  "build": 1,
+  "updatedAt": "2025-05-01T00:00:00Z",
+  "cacheName": "apphub-v1.3.2-b1",
+  "forceRefresh": true,
+  "notes": "Versión inicial del App Hub PWA."
+}
