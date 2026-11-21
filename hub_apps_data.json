@@ -6,8 +6,8 @@
   "apps": [
     {
       "id": "01App",
-      "name": "tabla petagorica",
-      "description": "Una tabla sensilla y visual.",
+      "name": "Tabla Petagorica",
+      "description": "multiplica con la tabla petagorica",
       "folder": "Hub/01App",
       "entry": "index.html",
       "icon": "assets/icono1.png",
@@ -18,6 +18,21 @@
       "storageKeys": [],
       "indexedDBs": [],
       "cachePrefix": "01app_"
+    },
+    {
+      "id": "02App",
+      "name": "PixelForge",
+      "description": "Diseño gráfico.",
+      "folder": "Hub/02App",
+      "entry": "index.html",
+      "icon": "assets/icono1.png",
+      "category": "art",
+      "version": "1.0",
+      "badge": "LOCAL",
+      "storagePrefix": "apphub_02app_",
+      "storageKeys": [],
+      "indexedDBs": [],
+      "cachePrefix": "02app_"
     }
   ]
 }
