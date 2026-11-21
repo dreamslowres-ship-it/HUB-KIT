@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>PixelForge Studio 3.3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;500;600&family=Lora:wght@400;600&family=Raleway:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="https://unpkg.com/konva@9/konva.min.js" defer></script>
+  <script src="https://unpkg.com/idb-keyval@6/dist/umd.js" defer></script>
+  <script src="js/icons.js" defer></script>
+  <script src="js/projectManager.js" defer></script>
+  <script src="js/historyManager.js" defer></script>
+  <script src="js/adjustmentEngine.js" defer></script>
+  <script src="js/layerManager.js" defer></script>
+  <script src="js/canvasEngine.js" defer></script>
+  <script src="js/exportEngine.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <!-- ================= HOME SCREEN ================= -->
+  <div id="screen-home" class="screen active">
+    <div class="home-shell">
+      <aside class="home-sidebar">
+        <div class="home-brand">
+          <div class="logo">
+            <div class="logo-mark">PF</div>
+            <div>
+              <div class="logo-title">PixelForge</div>
+              <div class="logo-version">Studio v3.3 Performance</div>
+            </div>
+          </div>
+          <p class="tagline">Estudio gráfico y fotográfico offline con capas, pincel, bote de pintura, ajustes no destructivos y exportación profesional.</p>
+        </div>
+        <div class="home-actions">
+          <button id="btn-new-project" class="btn btn-primary">
+            <span class="icon" data-icon="plus"></span>
+            Nuevo proyecto
+          </button>
+          <button id="btn-import-project" class="btn btn-secondary">
+            <span class="icon" data-icon="folderOpen"></span>
+            Abrir .pixelforge
+          </button>
+          <input type="file" id="input-import" accept=".pixelforge,.json" hidden />
+        </div>
+        <div class="home-tips">
+          <div class="tip-item"><b>Atajos PC:</b> V Selección · B Pincel · E Borrador · K Relleno · T Texto · I Cuentagotas · Espacio Pan</div>
+          <div class="tip-item"><b>Móvil:</b> Pellizca con 2 dedos para zoom/pan · Doble toque en texto para editar</div>
+        </div>
+      </aside>
+
+      <main class="projects-section">
+        <div class="projects-header">
+          <h2 class="section-title">Proyectos recientes</h2>
+          <span id="projects-count" class="badge">0</span>
+        </div>
+        <div id="projects-list" class="projects-list">
+          <div class="empty-state" id="empty-projects">
+            <p>No hay proyectos guardados todavía</p>
+            <p class="empty-sub">Crea un nuevo lienzo o importa un archivo .pixelforge</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= SIZE SELECTOR ================= -->
+  <div id="screen-size" class="screen">
+    <header class="topbar">
+      <button id="btn-size-back" class="btn-icon" aria-label="Volver"><span class="icon" data-icon="arrowLeft"></span></button>
+      <h1 class="topbar-title">Nuevo documento — Tamaño del artboard</h1>
+      <div style="width:36px"></div>
+    </header>
+    <div class="size-shell">
+      <div class="size-grid" id="size-presets"></div>
+      <div class="custom-size-box">
+        <h3>Dimensiones personalizadas</h3>
+        <div class="custom-inputs">
+          <label>Ancho (px) <input type="number" id="custom-width" value="1080" min="64" max="8000" /></label>
+          <span class="times-sep">×</span>
+          <label>Alto (px) <input type="number" id="custom-height" value="1080" min="64" max="8000" /></label>
+        </div>
+        <div class="prop-group" style="margin-top:12px">
+          <label>Fondo inicial</label>
+          <div class="seg-group" id="new-doc-bg-mode">
+            <button type="button" class="seg-btn active" data-bg="white">Blanco</button>
+            <button type="button" class="seg-btn" data-bg="dark">Oscuro</button>
+            <button type="button" class="seg-btn" data-bg="transparent">Transparente</button>
+          </div>
+        </div>
+        <button id="btn-create-custom" class="btn btn-primary" style="width:100%;margin-top:14px">
+          <span class="icon" data-icon="plus"></span> Crear documento
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= EDITOR WORKSTATION ================= -->
+  <div id="screen-editor" class="screen">
+    <header class="topbar editor-topbar">
+      <div class="topbar-left">
+        <button id="btn-editor-back" class="btn-icon" title="Inicio"><span class="icon" data-icon="arrowLeft"></span></button>
+        <div class="brand-chip">PF</div>
+        <input type="text" id="project-name" class="project-name-input" value="Sin título" maxlength="60" />
+        <button id="btn-artboard-size" class="dims-badge" title="Redimensionar artboard">1080 × 1080</button>
+      </div>
+
+      <div class="topbar-center">
+        <button id="btn-undo" class="btn-icon" disabled title="Deshacer (Ctrl+Z)"><span class="icon" data-icon="undo"></span></button>
+        <button id="btn-redo" class="btn-icon" disabled title="Rehacer (Ctrl+Y)"><span class="icon" data-icon="redo"></span></button>
+        <div class="v-divider"></div>
+        <button id="btn-toggle-grid" class="btn-icon" title="Cuadrícula (G)"><span class="icon" data-icon="grid"></span></button>
+        <button id="btn-toggle-snap" class="btn-icon active" title="Guías magnéticas (Snap)"><span class="icon" data-icon="magnet"></span></button>
+        <button id="btn-toggle-rulers" class="btn-icon active" title="Reglas"><span class="icon" data-icon="ruler"></span></button>
+      </div>
+
+      <div class="topbar-right">
+        <button id="btn-toggle-inspector" class="btn-icon active" title="Mostrar/Ocultar Inspector"><span class="icon" data-icon="sidebar"></span></button>
+        <button id="btn-save" class="btn-icon" title="Guardar en app (Ctrl+S)"><span class="icon" data-icon="save"></span></button>
+        <button id="btn-save-file" class="btn-icon" title="Descargar .pixelforge"><span class="icon" data-icon="downloadFile"></span></button>
+        <button id="btn-export" class="btn btn-primary btn-sm">Exportar</button>
+      </div>
+    </header>
+
+    <div id="options-bar" class="options-bar"></div>
+
+    <div class="editor-workspace">
+      <aside class="tool-dock" id="toolbar">
+        <div class="tool-grid">
+          <button class="tool-btn active" data-tool="select" title="Selección y Mover (V)"><span class="icon" data-icon="select"></span></button>
+          <button class="tool-btn" data-tool="hand" title="Mano / Mover lienzo (H)"><span class="icon" data-icon="hand"></span></button>
+          <button class="tool-btn" data-tool="crop" title="Recortar imagen o lienzo (C)"><span class="icon" data-icon="crop"></span></button>
+          <button class="tool-btn" data-tool="eyedropper" title="Cuentagotas (I)"><span class="icon" data-icon="eyedropper"></span></button>
+          <button class="tool-btn" data-tool="brush" title="Pincel (B)"><span class="icon" data-icon="brush"></span></button>
+          <button class="tool-btn" data-tool="eraser" title="Borrador (E)"><span class="icon" data-icon="eraser"></span></button>
+          <button class="tool-btn" data-tool="bucket" title="Bote de pintura / Relleno (K)"><span class="icon" data-icon="bucket"></span></button>
+          <button class="tool-btn" data-tool="paintLayer" title="Nueva capa de dibujo"><span class="icon" data-icon="layersPlus"></span></button>
+          <button class="tool-btn" data-tool="text" title="Añadir Texto (T)"><span class="icon" data-icon="text"></span></button>
+          <button class="tool-btn" data-tool="shape" title="Formas vectoriales (U)"><span class="icon" data-icon="shape"></span></button>
+          <button class="tool-btn" data-tool="image" title="Importar Imagen"><span class="icon" data-icon="image"></span></button>
+          <button class="tool-btn" data-tool="zoomFit" title="Ajustar vista al área"><span class="icon" data-icon="maximize"></span></button>
+        </div>
+
+        <div class="dock-swatch-box" title="Color activo (Pincel / Relleno)">
+          <label class="swatch-label">
+            <input type="color" id="active-color-picker" value="#a78bfa" />
+            <span id="active-color-preview" class="swatch-preview" style="background:#a78bfa"></span>
+          </label>
+          <span id="active-color-hex" class="swatch-hex">#A78BFA</span>
+          <div id="quick-swatches" class="quick-swatches"></div>
+        </div>
+      </aside>
+
+      <div class="canvas-viewport" id="canvas-viewport">
+        <div class="ruler-corner" id="ruler-corner">px</div>
+        <canvas id="ruler-top" class="ruler-top"></canvas>
+        <canvas id="ruler-left" class="ruler-left"></canvas>
+
+        <div class="canvas-container" id="canvas-container">
+          <div id="konva-container"></div>
+
+          <div class="canvas-hud">
+            <span id="hud-coords" class="hud-coords">X: 0  Y: 0</span>
+            <div class="v-divider"></div>
+            <button id="btn-zoom-out" class="hud-btn" title="Alejar"><span class="icon" data-icon="zoomOut"></span></button>
+            <span id="zoom-level" class="hud-zoom">100%</span>
+            <button id="btn-zoom-in" class="hud-btn" title="Acercar"><span class="icon" data-icon="zoomIn"></span></button>
+            <button id="btn-zoom-fit" class="hud-btn" title="Ajustar al área"><span class="icon" data-icon="maximize"></span></button>
+            <button id="btn-zoom-100" class="hud-btn hud-text-btn" title="Zoom 100%">1:1</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="inspector-dock" id="inspector-dock">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="layers">Capas</button>
+          <button class="panel-tab" data-tab="props">Prop.</button>
+          <button class="panel-tab" data-tab="adjust">Ajustes</button>
+          <button class="panel-tab" data-tab="effects">Efectos</button>
+        </div>
+
+        <div class="panel-content active" id="tab-layers">
+          <div class="layer-blend-bar" id="layer-blend-bar">
+            <select id="layer-blend-mode" title="Modo de fusión">
+              <option value="source-over">Normal</option>
+              <option value="multiply">Multiplicar</option>
+              <option value="screen">Trama (Screen)</option>
+              <option value="overlay">Superponer</option>
+              <option value="darken">Oscurecer</option>
+              <option value="lighten">Aclarar</option>
+              <option value="color-dodge">Sobreexponer color</option>
+              <option value="color-burn">Subexponer color</option>
+              <option value="hard-light">Luz fuerte</option>
+              <option value="soft-light">Luz suave</option>
+              <option value="difference">Diferencia</option>
+              <option value="hue">Tono</option>
+              <option value="saturation">Saturación</option>
+              <option value="luminosity">Luminosidad</option>
+            </select>
+            <div class="opacity-mini">
+              <span>Op.</span>
+              <input type="range" id="layer-opacity" min="0" max="100" value="100" />
+              <span id="layer-opacity-val" class="val-num">100%</span>
+            </div>
+          </div>
+
+          <div class="layers-toolbar">
+            <button id="btn-layer-add-paint" class="mini-action" title="Nueva capa de dibujo"><span class="icon" data-icon="brush"></span></button>
+            <button id="btn-layer-add-text" class="mini-action" title="Nueva capa de texto"><span class="icon" data-icon="text"></span></button>
+            <button id="btn-layer-dup" class="mini-action" title="Duplicar capa"><span class="icon" data-icon="copy"></span></button>
+            <button id="btn-layer-up" class="mini-action" title="Subir capa"><span class="icon" data-icon="arrowUp"></span></button>
+            <button id="btn-layer-down" class="mini-action" title="Bajar capa"><span class="icon" data-icon="arrowDown"></span></button>
+            <button id="btn-layer-flatten" class="mini-action" title="Acoplar capas visibles"><span class="icon" data-icon="merge"></span></button>
+            <button id="btn-layer-del" class="mini-action danger" title="Eliminar capa"><span class="icon" data-icon="trash"></span></button>
+          </div>
+
+          <div id="layers-list" class="layers-list"></div>
+
+          <div id="artboard-layer-row" class="artboard-layer-row" title="Clic para editar fondo del artboard">
+            <div class="layer-thumb" id="artboard-thumb"></div>
+            <div class="layer-meta">
+              <div class="layer-name">Fondo del Artboard</div>
+              <div class="layer-sub" id="artboard-bg-desc">Blanco · Sólido</div>
+            </div>
+            <span class="icon" data-icon="sliders"></span>
+          </div>
+        </div>
+
+        <div class="panel-content" id="tab-props">
+          <div id="prop-transform-box" class="prop-section hidden">
+            <div class="prop-section-title">
+              <span>Transformación</span>
+              <div class="inline-mini-btns">
+                <button id="btn-lock-ratio" class="mini-action active" title="Bloquear proporción An/Al"><span class="icon" data-icon="link"></span></button>
+                <button id="btn-flip-h" class="mini-action" title="Voltear Horizontal"><span class="icon" data-icon="flipH"></span></button>
+                <button id="btn-flip-v" class="mini-action" title="Voltear Vertical"><span class="icon" data-icon="flipV"></span></button>
+              </div>
+            </div>
+            <div class="num-grid-4">
+              <label>X <input type="number" id="prop-x" step="1" /></label>
+              <label>Y <input type="number" id="prop-y" step="1" /></label>
+              <label>An <input type="number" id="prop-w" min="1" step="1" /></label>
+              <label>Al <input type="number" id="prop-h" min="1" step="1" /></label>
+            </div>
+            <div class="slider-row compact" style="margin-top:8px">
+              <span class="mini-lbl">Rot.</span>
+              <input type="range" id="prop-rot-range" min="-180" max="180" value="0" />
+              <input type="number" id="prop-rot" min="-360" max="360" value="0" />
+            </div>
+            <div class="align-bar" title="Alinear al artboard">
+              <button data-align-board="left" class="mini-action" title="Alinear Izquierda"><span class="icon" data-icon="alignBoardLeft"></span></button>
+              <button data-align-board="centerH" class="mini-action" title="Centrar Horizontal"><span class="icon" data-icon="alignBoardCenterH"></span></button>
+              <button data-align-board="right" class="mini-action" title="Alinear Derecha"><span class="icon" data-icon="alignBoardRight"></span></button>
+              <button data-align-board="top" class="mini-action" title="Alinear Arriba"><span class="icon" data-icon="alignBoardTop"></span></button>
+              <button data-align-board="centerV" class="mini-action" title="Centrar Vertical"><span class="icon" data-icon="alignBoardCenterV"></span></button>
+              <button data-align-board="bottom" class="mini-action" title="Alinear Abajo"><span class="icon" data-icon="alignBoardBottom"></span></button>
+            </div>
+          </div>
+
+          <div id="prop-text-box" class="prop-section hidden">
+            <div class="prop-section-title">
+              <span>Texto</span>
+              <button id="btn-edit-text-now" class="btn btn-secondary btn-xs">Editar texto</button>
+            </div>
+            <div class="prop-group">
+              <label>Fuente</label>
+              <select id="text-font" class="select-full">
+                <option value="Inter">Inter</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="Poppins">Poppins</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Oswald">Oswald</option>
+                <option value="Lora">Lora</option>
+                <option value="Raleway">Raleway</option>
+                <option value="Nunito">Nunito</option>
+              </select>
+            </div>
+            <div class="prop-group">
+              <label>Tamaño y Color</label>
+              <div class="prop-row">
+                <input type="range" id="text-size" min="8" max="240" value="48" style="flex:1" />
+                <input type="number" id="text-size-num" min="8" max="500" value="48" class="num-sm" />
+                <input type="color" id="text-color" value="#111111" />
+              </div>
+            </div>
+            <div class="prop-group">
+              <label>Estilo y Alineación</label>
+              <div class="prop-row-between">
+                <div class="style-btns">
+                  <button class="style-btn" data-style="bold" title="Negrita"><b>B</b></button>
+                  <button class="style-btn" data-style="italic" title="Cursiva"><i>I</i></button>
+                  <button class="style-btn" data-style="underline" title="Subrayado"><u>U</u></button>
+                  <button class="style-btn" data-style="upper" title="Mayúsculas">AA</button>
+                </div>
+                <div class="style-btns">
+                  <button class="style-btn active" data-align="left"><span class="icon" data-icon="alignLeft"></span></button>
+                  <button class="style-btn" data-align="center"><span class="icon" data-icon="alignCenter"></span></button>
+                  <button class="style-btn" data-align="right"><span class="icon" data-icon="alignRight"></span></button>
+                </div>
+              </div>
+            </div>
+            <div class="prop-group">
+              <label>Interlineado / Espaciado</label>
+              <div class="num-grid-2">
+                <label>Línea <input type="number" id="text-line-height" min="0.6" max="3" step="0.05" value="1.2" /></label>
+                <label>Letra <input type="number" id="text-letter-spacing" min="-10" max="60" step="1" value="0" /></label>
+              </div>
+            </div>
+            <div class="prop-group">
+              <label>Contorno (Outline)</label>
+              <div class="prop-row">
+                <input type="color" id="text-stroke-color" value="#000000" />
+                <input type="range" id="text-stroke-width" min="0" max="20" value="0" style="flex:1" />
+                <span id="text-stroke-val" class="val-num">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="prop-shape-box" class="prop-section hidden">
+            <div class="prop-section-title"><span>Forma</span></div>
+            <div class="prop-group">
+              <label>Tipo de relleno</label>
+              <div class="seg-group" id="shape-fill-mode">
+                <button type="button" class="seg-btn active" data-fill="solid">Sólido</button>
+                <button type="button" class="seg-btn" data-fill="gradient">Degradado</button>
+                <button type="button" class="seg-btn" data-fill="none">Ninguno</button>
+              </div>
+            </div>
+            <div id="shape-solid-row" class="prop-group">
+              <label>Color de relleno</label>
+              <div class="prop-row">
+                <input type="color" id="shape-fill" value="#a78bfa" />
+                <span id="shape-fill-hex" class="mono-tag">#A78BFA</span>
+              </div>
+            </div>
+            <div id="shape-grad-row" class="prop-group hidden">
+              <label>Degradado lineal</label>
+              <div class="prop-row">
+                <input type="color" id="shape-grad-1" value="#a78bfa" />
+                <input type="color" id="shape-grad-2" value="#38bdf8" />
+                <input type="range" id="shape-grad-angle" min="0" max="360" value="135" style="flex:1" />
+              </div>
+            </div>
+            <div class="prop-group">
+              <label>Borde y Grosor</label>
+              <div class="prop-row">
+                <input type="color" id="shape-stroke" value="#ffffff" />
+                <input type="range" id="shape-stroke-width" min="0" max="40" value="0" style="flex:1" />
+                <span id="shape-stroke-val" class="val-num">0</span>
+              </div>
+            </div>
+            <div class="prop-group" id="shape-dash-group">
+              <label class="check-row"><input type="checkbox" id="shape-dashed" /> Borde discontinuo (guiones)</label>
+            </div>
+            <div class="prop-group" id="corner-radius-group">
+              <label>Radio esquina</label>
+              <div class="slider-row compact">
+                <input type="range" id="shape-corner" min="0" max="150" value="0" />
+                <span id="shape-corner-val" class="val-num">0</span>
+              </div>
+            </div>
+            <div class="prop-group hidden" id="shape-sides-group">
+              <label>Puntas / Lados</label>
+              <div class="slider-row compact">
+                <input type="range" id="shape-sides" min="3" max="12" value="5" />
+                <span id="shape-sides-val" class="val-num">5</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="prop-image-box" class="prop-section hidden">
+            <div class="prop-section-title"><span>Imagen</span></div>
+            <div class="prop-btn-grid">
+              <button id="btn-img-crop" class="btn btn-secondary btn-xs">Recortar imagen</button>
+              <button id="btn-img-reset-crop" class="btn btn-secondary btn-xs">Restaurar recorte</button>
+              <button id="btn-img-fit-board" class="btn btn-secondary btn-xs">Ajustar al artboard</button>
+              <button id="btn-img-fill-board" class="btn btn-secondary btn-xs">Cubrir artboard</button>
+            </div>
+          </div>
+
+          <div id="prop-paint-box" class="prop-section hidden">
+            <div class="prop-section-title"><span>Capa de Dibujo</span></div>
+            <p class="muted-note">Pinta con Pincel (B), rellena con Bote (K) o borra (E) sin dañar tus imágenes.</p>
+            <div class="prop-btn-grid" style="margin-top:8px">
+              <button id="btn-paint-use-brush" class="btn btn-primary btn-xs">Activar Pincel</button>
+              <button id="btn-paint-clear" class="btn btn-secondary btn-xs">Limpiar dibujo</button>
+            </div>
+          </div>
+
+          <div id="prop-artboard-box" class="prop-section">
+            <div class="prop-section-title">
+              <span>Artboard y Fondo</span>
+              <button id="btn-open-resize-2" class="btn btn-secondary btn-xs">Redimensionar</button>
+            </div>
+            <div class="prop-group">
+              <label>Renderizado de píxeles</label>
+              <div class="seg-group" id="pixel-mode-group">
+                <button type="button" class="seg-btn active" data-pixelmode="smooth">Suavizado</button>
+                <button type="button" class="seg-btn" data-pixelmode="nearest">Nearest (Píxel)</button>
+              </div>
+            </div>
+            <div class="prop-group">
+              <label>Tipo de fondo</label>
+              <div class="seg-group" id="bg-mode-group">
+                <button type="button" class="seg-btn active" data-bgtype="solid">Sólido</button>
+                <button type="button" class="seg-btn" data-bgtype="gradient">Degradado</button>
+                <button type="button" class="seg-btn" data-bgtype="transparent">Transparente</button>
+              </div>
+            </div>
+            <div id="bg-solid-row" class="prop-group">
+              <label>Color del fondo</label>
+              <div class="prop-row">
+                <input type="color" id="bg-color" value="#ffffff" />
+                <span id="bg-color-hex" class="mono-tag">#FFFFFF</span>
+              </div>
+            </div>
+            <div id="bg-grad-row" class="prop-group hidden">
+              <label>Degradado del artboard</label>
+              <div class="prop-row">
+                <input type="color" id="bg-grad-1" value="#1e1b4b" />
+                <input type="color" id="bg-grad-2" value="#4c1d95" />
+                <input type="range" id="bg-grad-angle" min="0" max="360" value="135" style="flex:1" />
+              </div>
+            </div>
+            <div class="prop-group">
+              <label>Insertar rápido</label>
+              <div class="shape-mini-grid" id="shape-picker">
+                <button class="shape-btn" data-shape="rect" title="Rectángulo"><span class="icon" data-icon="rect"></span></button>
+                <button class="shape-btn" data-shape="circle" title="Círculo"><span class="icon" data-icon="circle"></span></button>
+                <button class="shape-btn" data-shape="ellipse" title="Elipse"><span class="icon" data-icon="ellipse"></span></button>
+                <button class="shape-btn" data-shape="triangle" title="Triángulo"><span class="icon" data-icon="triangle"></span></button>
+                <button class="shape-btn" data-shape="polygon" title="Polígono"><span class="icon" data-icon="polygon"></span></button>
+                <button class="shape-btn" data-shape="star" title="Estrella"><span class="icon" data-icon="star"></span></button>
+                <button class="shape-btn" data-shape="line" title="Línea"><span class="icon" data-icon="line"></span></button>
+                <button class="shape-btn" data-shape="arrow" title="Flecha"><span class="icon" data-icon="arrow"></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-content" id="tab-adjust">
+          <div id="adjust-active-area" class="hidden">
+            <div class="prop-section-title">
+              <span>Ajustes</span>
+              <div class="inline-mini-btns">
+                <button id="btn-adjust-compare" class="btn btn-secondary btn-xs" title="Mantén pulsado para ver original">Comparar</button>
+                <button id="btn-adjust-reset" class="btn btn-secondary btn-xs">Restablecer</button>
+              </div>
+            </div>
+            <div class="adjust-presets" id="filter-presets"></div>
+            <div class="adjust-sliders" id="adjust-sliders"></div>
+            <div class="adjust-toggles">
+              <button class="toggle-chip" data-adj-toggle="grayscale">B&amp;N</button>
+              <button class="toggle-chip" data-adj-toggle="sepia">Sepia</button>
+              <button class="toggle-chip" data-adj-toggle="invert">Invertir</button>
+            </div>
+          </div>
+          <p class="panel-hint" id="adjust-hint">Selecciona una imagen o capa de dibujo para aplicar ajustes fotográficos</p>
+        </div>
+
+        <div class="panel-content" id="tab-effects">
+          <div id="effects-active-area" class="hidden">
+            <div class="prop-section-title">
+              <span>Sombra paralela</span>
+              <button id="btn-shadow-toggle" class="btn btn-secondary btn-xs">Activar</button>
+            </div>
+            <div id="shadow-controls" class="hidden">
+              <div class="prop-group">
+                <label>Color sombra</label>
+                <div class="prop-row"><input type="color" id="shadow-color" value="#000000" /></div>
+              </div>
+              <div class="slider-group">
+                <label><span>Desenfoque</span><span id="shadow-blur-val">14</span></label>
+                <input type="range" id="shadow-blur" min="0" max="60" value="14" />
+              </div>
+              <div class="slider-group">
+                <label><span>Offset X</span><span id="shadow-ox-val">4</span></label>
+                <input type="range" id="shadow-offset-x" min="-60" max="60" value="4" />
+              </div>
+              <div class="slider-group">
+                <label><span>Offset Y</span><span id="shadow-oy-val">6</span></label>
+                <input type="range" id="shadow-offset-y" min="-60" max="60" value="6" />
+              </div>
+              <div class="slider-group">
+                <label><span>Opacidad sombra</span><span id="shadow-op-val">45%</span></label>
+                <input type="range" id="shadow-opacity" min="0" max="100" value="45" />
+              </div>
+            </div>
+          </div>
+          <p class="panel-hint" id="effects-hint">Selecciona cualquier capa para configurar sombras y efectos</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ================= RESIZE ARTBOARD MODAL ================= -->
+  <div id="modal-resize" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-sm">
+      <h2>Redimensionar artboard</h2>
+      <div class="custom-inputs">
+        <label>Ancho (px) <input type="number" id="resize-width" min="64" max="8000" /></label>
+        <span class="times-sep">×</span>
+        <label>Alto (px) <input type="number" id="resize-height" min="64" max="8000" /></label>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label class="check-row"><input type="checkbox" id="resize-scale-content" /> Escalar contenido proporcionalmente</label>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-resize-cancel" class="btn btn-secondary">Cancelar</button>
+        <button id="btn-resize-apply" class="btn btn-primary">Aplicar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= EXPORT MODAL ================= -->
+  <div id="modal-export" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h2>Exportar diseño</h2>
+      <div class="field">
+        <label>Formato</label>
+        <select id="export-format">
+          <option value="png">PNG (Soporta transparencia)</option>
+          <option value="jpg">JPG (Comprimido)</option>
+          <option value="webp">WebP (Ligero alta calidad)</option>
+          <option value="pdf">PDF (Documento)</option>
+        </select>
+      </div>
+      <div class="field hidden" id="export-quality-field">
+        <label>Calidad JPG / WebP</label>
+        <select id="export-quality">
+          <option value="0.75">75%</option>
+          <option value="0.88" selected>88%</option>
+          <option value="0.95">95%</option>
+          <option value="1">100%</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Escala de resolución</label>
+        <select id="export-scale">
+          <option value="1">1× (Original)</option>
+          <option value="1.5">1.5×</option>
+          <option value="2" selected>2× (Alta resolución)</option>
+          <option value="3">3× (Impresión)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nombre de archivo</label>
+        <input type="text" id="export-filename" value="pixelforge-export" />
+      </div>
+      <div class="modal-actions">
+        <button id="btn-export-cancel" class="btn btn-secondary">Cancelar</button>
+        <button id="btn-export-download" class="btn btn-primary">Descargar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <input type="file" id="input-image" accept="image/*" hidden />
+</body>
+</html>

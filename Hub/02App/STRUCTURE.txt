@@ -1,0 +1,45 @@
+================================================================================
+PIXELFORGE MOBILE — ESTRUCTURA DEL PROYECTO
+================================================================================
+Versión del documento: 3.3.1 PERFORMANCE
+Fecha: 2026-11-20
+Última actualización: 2026-11-20 (V3.3.1 — WebGL Fix, Scanline Fill & Boot Tune)
+
+IMPORTANTE: Este archivo DEBE actualizarse en cada versión.
+================================================================================
+
+ESTRUCTURA (V3.3.1 Performance)
+
+pixelforge/
+├── index.html                → UI Studio Horizontal Pro + carga defer y fuentes async
+├── css/
+│   └── app.css               → Diseño oscuro GPU-friendly (sin backdrop-filter)
+├── js/
+│   ├── diagConsole.js        → Consola diagnóstico, breadcrumbs y micro-dumps .json/.txt
+│   ├── icons.js              → SVG icons (código puro, set completo V3.3)
+│   ├── projectManager.js     → IndexedDB + fallback localStorage + .pixelforge
+│   ├── historyManager.js     → Undo/Redo (12 pasos) + rastreo de assetIds
+│   ├── adjustmentEngine.js   → Ajustes WebGL + fallback Konva desde fuente original
+│   ├── layerManager.js       → Capas + downscale 2048px + thumbs 64×64 + gcAssets()
+│   ├── canvasEngine.js       → Konva (DPR 1.5, rAF pan/pinch, crop 3×3, scanline fill)
+│   ├── exportEngine.js       → Export PNG (alpha) / JPG / WebP / PDF (jsPDF lazy-load)
+│   ├── main.js               → Orquestación, atajos, GC RAM y auto-guardado (75s)
+│   └── ui.js                 → UI contextual, miniaturas 64px e inspector
+└── STRUCTURE.txt
+
+================================================================================
+CORRECCIONES Y MEJORAS V3.3.1
+
+- adjustmentEngine.js: WebGL siempre procesa desde _pfOrigSource (evita degradar a 420px
+  o acumular filtros), cancela preview rAF pendiente al aplicar calidad final, restaura
+  imagen original al restablecer y respeta imágenes con recorte (crop)
+- canvasEngine.js: artboardChecker oculto cuando el fondo no es transparente, pan/pinch
+  agrupado en rAF, resize del Stage evitado si las dimensiones coinciden, edición/borrado
+  compatible con filtros WebGL y Bote de Pintura con scanline flood-fill (Int32Array)
+- layerManager.js: duplicateLayer conserva _pfOrigSource, flattenVisibleLayers libera
+  buffers temporales y downscale conserva alfa si no hay WebP
+- index.html + exportEngine.js: scripts con defer, fuentes secundarias no bloqueantes
+  y jsPDF cargado bajo demanda solo al exportar PDF
+- diagConsole.js: breadcrumbs de pantalla/toques, detección de RAM cuantizada en
+  Android/WebView y filtro de document.hidden contra falsos freezes en segundo plano
+================================================================================
